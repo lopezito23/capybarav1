@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Un mensaje para ti ♡</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{background:radial-gradient(ellipse at 50% 45%,#fff0f5 0,#fbe3ef 42%,#e9c7e3 100%);font-family:Georgia,'Times New Roman',serif;color:#6f3157}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.glow{position:absolute;width:55vmin;height:55vmin;left:50%;top:44%;transform:translate(-50%,-50%);border-radius:50%;background:#fff7fb;filter:blur(34px);opacity:.8;pointer-events:none}
+.message{position:absolute;left:50%;top:76%;transform:translate(-50%,18px) scale(.96);width:94%;text-align:center;opacity:0;transition:opacity 1.5s ease,transform 1.5s cubic-bezier(.2,.8,.2,1);pointer-events:none;text-shadow:0 0 14px #fff,0 0 30px #ffb8dc}
+.message.show{opacity:1;transform:translate(-50%,0) scale(1)}
+.line1{font-size:clamp(27px,5vw,54px);font-style:italic;letter-spacing:.015em;color:#a43d70}
+.line2{margin-top:8px;font-size:clamp(18px,3vw,29px);color:#9c5479}
+.heart{display:inline-block;color:#ed6aa5;animation:beat 1.15s infinite;filter:drop-shadow(0 0 9px #ff8dc5)}
+@keyframes beat{0%,100%{transform:scale(1)}18%{transform:scale(1.22)}35%{transform:scale(1)}52%{transform:scale(1.14)}}
+.hint{position:absolute;bottom:18px;left:0;width:100%;text-align:center;font:11px/1.4 system-ui,sans-serif;letter-spacing:.18em;color:#a56e91;opacity:.7}
+.petal{position:fixed;z-index:5;top:-30px;width:12px;height:18px;border-radius:100% 0 100% 0;background:linear-gradient(140deg,#fff0f5,#e94f87 55%,#b51f55);box-shadow:0 1px 5px #d94b8066;opacity:.82;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translate3d(var(--drift),110vh,0) rotate(540deg);opacity:0}}
+</style></head>
+<body><div class="glow"></div><canvas id="art"></canvas>
+<div class="message" id="message"><div class="line1">Te amo bastante, pequeña <span class="heart">♡</span></div><div class="line2">Eres una personita muy especial para mí. <span class="heart">♥</span></div></div>
+<div class="hint" id="hint">UN DETALLITO HECHO CON CARIÑO</div>
+<script>
+const canvas=document.getElementById('art'),ctx=canvas.getContext('2d');
+let W,H,D,scale=1,ox=0,oy=0;
+function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;canvas.width=W*D;canvas.height=H*D;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(D,0,0,D,0,0);scale=Math.min(W/760,H/850,1.05);ox=W/2;oy=H*.43;}
+addEventListener('resize',()=>{resize();drawProgress(progress)});resize();
+const ops=[];
+let px=0,py=0,heading=0,pen=true,fillColor='black',penColor='black',penSize=6,fillPts=null,shape='turtle';
+function screen(x,y){return [ox+x*scale,oy-y*scale]}
+function recordLine(x1,y1,x2,y2,color,width){ops.push({type:'line',a:[x1,y1],b:[x2,y2],color,width})}
+function goto(x,y){if(pen)recordLine(px,py,x,y,penColor,penSize);px=x;py=y;if(fillPts)fillPts.push([x,y])}
+function go(x,y){pen=false;goto(x,y);pen=true}
+function arco(direc,radio,ang){
+ heading=direc*Math.PI/180;
+ const r=radio, extent=ang*Math.PI/180;
+ if(Math.abs(r)<.0001){heading+=extent;return}
+ const sign=Math.sign(r);
+ const cx=px-Math.sin(heading)*r, cy=py+Math.cos(heading)*r;
+ const start=Math.atan2(py-cy,px-cx);
+ const steps=Math.max(2,Math.ceil(Math.abs(extent)*Math.max(8,Math.abs(r)/4)));
+ for(let i=1;i<=steps;i++){
+   const a=start+extent*sign*i/steps;
+   const nx=cx+Math.cos(a)*Math.abs(r),ny=cy+Math.sin(a)*Math.abs(r);
+   goto(nx,ny);
+ }
+ heading+=extent*sign;
+}
+function linea(direc,longitud){heading=direc*Math.PI/180;goto(px+Math.cos(heading)*longitud,py+Math.sin(heading)*longitud)}
+const t={
+ pensize(n){penSize=n},shape(s){shape=s},fillcolor(c){fillColor=c},pencolor(c){penColor=c},
+ penup(){pen=false},pendown(){pen=true},goto(x,y){goto(x,y)},seth(d){heading=d*Math.PI/180},
+ forward(n){goto(px+Math.cos(heading)*n,py+Math.sin(heading)*n)},
+ circle(r,a=360){arco(heading*180/Math.PI,r,a)},
+ begin_fill(){fillPts=[[px,py]]},
+ end_fill(){if(fillPts&&fillPts.length>2)ops.push({type:'fill',pts:fillPts.slice(),color:fillColor});fillPts=null}
+};
+
+// Dibujo original del archivo Python, traducido a comandos de dibujo del navegador.
+function buildDrawing(){
+t.pensize(6);
+t.fillcolor("Gainsboro");
+t.pencolor("Gainsboro");
+go(262.83, -206.56);
+t.begin_fill();
+arco(155.58, 513.88, 47.94);
+arco(203.52, 20.25, 137.24);
+arco(340.76, 628.92, 38.48);
+arco(19.25, 18.54, 136.34);
+t.end_fill();
+t.fillcolor("DarkSalmon");
+t.pencolor("Maroon");
+go(248.35, -18.63);
+t.begin_fill();
+arco(102.59, 129.92, 73.39);
+arco(175.98, -23.7, 91.16);
+arco(84.81, 88.92, 53.8);
+arco(52.31, 58.25, 90.74);
+arco(143.06, 30.69, 81.44);
+arco(224.5, 60.59, 30.16);
+arco(159.58, 125.83, 30.9);
+arco(190.48, 264.99, 56.24);
+arco(246.72, 126.73, 130.1);
+arco(255.83, 81.59, 61.97);
+arco(242.54, 97.87, 14.25);
+arco(238.3, 85.29, 16.3);
+arco(254.6, 21.87, 96.08);
+arco(350.68, 64.89, 42.21);
+arco(278.69, 23.88, 76.24);
+arco(354.93, 63.29, 56.23);
+arco(335.51, 157.16, 72.14);
+arco(47.65, 78.14, 30.21);
+arco(77.86, 312.71, 24.73);
+t.end_fill();
+go(-45.82, 242.65);
+t.begin_fill();
+arco(97.56, 57.86, 27.94);
+arco(125.5, 27.85, 102.31);
+arco(230.67, 84.23, 37.14);
+arco(24.96, -260.83, 16.7);
+t.end_fill();
+t.pensize(3);
+t.fillcolor("RosyBrown");
+t.pencolor("RosyBrown");
+go(58.84, 226.43);
+t.begin_fill();
+arco(136.5, 12.77, 95.52);
+arco(232.02, 18.35, 82.36);
+arco(314.38, 11.55, 72.68);
+arco(27.06, 17.17, 109.44);
+t.end_fill();
+go(-72.8, 239.87);
+t.begin_fill();
+arco(96.2, 48.28, 8.2);
+arco(104.4, 7.72, 120.76);
+arco(225.16, 26.04, 44.75);
+arco(27.98, -86.55, 15.4);
+t.end_fill();
+go(-125.98, 44.73);
+t.begin_fill();
+arco(130.88, -98.99, 25.74);
+arco(105.15, 57.59, 25.56);
+arco(130.71, 33.71, 96.16);
+arco(226.87, 4593.96, 0.89);
+arco(259.65, 122.34, 89.83);
+arco(21.05, 83.16, 109.83);
+t.end_fill();
+go(-25.42, -229.28);
+t.begin_fill();
+arco(124.19, 88.02, 44.86);
+arco(218.63, 25.89, 134.34);
+arco(358.44, 95.59, 26.63);
+t.end_fill();
+go(39.97, -234.93);
+t.begin_fill();
+arco(130.27, 164.21, 12.68);
+arco(142.95, 31.22, 77.65);
+arco(245.96, 26.12, 106.25);
+arco(350.57, 54.97, 50.55);
+t.end_fill();
+go(110.49, -238.25);
+t.begin_fill();
+arco(81.25, 30.05, 60.71);
+arco(137.53, 47.22, 44.99);
+arco(206.73, 21.91, 111.85);
+arco(346.96, 184.43, 15.58);
+t.end_fill();
+t.pencolor("Maroon");
+t.fillcolor("Maroon");
+t.pensize(6);
+go(-250.02, 85.49);
+arco(246.72, 126.73, 130.1);
+go(-81.06, -189.06);
+arco(238.3, 85.29, 16.3);
+arco(254.6, 21.87, 96.08);
+arco(350.68, 64.89, 42.21);
+arco(278.69, 23.88, 76.24);
+arco(354.93, 63.29, 56.23);
+arco(335.51, 157.16, 72.14);
+go(-54.81, 241.32);
+arco(190.48, 264.99, 56.24);
+t.pensize(2);
+t.pencolor("Black");
+t.fillcolor("Black");
+go(-5.43, 66.32);
+t.begin_fill();
+arco(90, 46.73/2, 360);
+t.end_fill();
+t.pencolor("Maroon");
+t.fillcolor("Maroon");
+t.pensize(6);
+go(-191.95, 36);
+arco(31.5, 36.41, 22.82);
+go(-218.26, 49.03);
+arco(291.59, 16.05, 51.26);
+go(-200.71, 15.39);
+arco(255.32, 53.03, 70.87);
+go(-208.07, -44.46);
+arco(47.64, 60.08, 23.08);
+go(-15.67, -174.58);
+arco(243.95, 116.29, 27.74);
+go(-23.95, -197.21);
+arco(140.85, 245.79, 13.47);
+go(48.94, -225.9);
+arco(51.47, 78.71, 19.08);
+arco(42.68, 52.2, 39.37);
+arco(82.06, -60.02, 55.77);
+t.pencolor("PapayaWhip");
+t.fillcolor("PapayaWhip");
+t.pensize(3);
+go(41.45, 58.67);
+t.begin_fill();
+arco(145.87, 24.04, 63.57);
+arco(209.44, 11.05, 107.39);
+arco(316.84, 20.58, 90.7);
+arco(47.54, 10.33, 98.34);
+t.end_fill();
+}
+buildDrawing();
+
+function drawProgress(p){
+ ctx.clearRect(0,0,W,H);
+ const total=ops.length, upto=Math.floor(total*p);
+ for(let i=0;i<upto;i++){
+  const o=ops[i];
+  if(o.type==='fill'){
+   const pts=o.pts.map(q=>screen(q[0],q[1]));ctx.beginPath();ctx.moveTo(...pts[0]);for(let j=1;j<pts.length;j++)ctx.lineTo(...pts[j]);ctx.closePath();ctx.fillStyle=o.color;ctx.shadowColor=o.color==='DarkSalmon'?'#f2a0b5':'transparent';ctx.shadowBlur=7;ctx.fill();ctx.shadowBlur=0;
+  }else{
+   const a=screen(...o.a),b=screen(...o.b);ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.strokeStyle=o.color;ctx.lineWidth=Math.max(1,o.width*scale);ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
+  }
+ }
+}
+let progress=0,done=false;
+function animate(){
+ progress=Math.min(1,progress+.0035);
+ drawProgress(progress);
+ if(progress>=1&&!done){done=true;setTimeout(()=>{document.getElementById('message').classList.add('show');document.getElementById('hint').style.opacity='0';},500);setInterval(makePetal,520);}
+ if(!done)requestAnimationFrame(animate);
+}
+function makePetal(){
+ const el=document.createElement('i');
+ el.className='petal';
+ const size=8+Math.random()*11;
+ el.style.left=Math.random()*100+'%';
+ el.style.width=size+'px';
+ el.style.height=(size*1.45)+'px';
+ el.style.background=`linear-gradient(${100+Math.random()*100}deg,#fff0f5,${['#f7a1c4','#ec5a91','#d93670','#c9275b'][Math.floor(Math.random()*4)]} 58%,#9f1747)`;
+ el.style.setProperty('--drift',(Math.random()*240-120)+'px');
+ el.style.animationDuration=(6+Math.random()*7)+'s';
+ el.style.animationDelay=(Math.random()*0.6)+'s';
+ document.body.appendChild(el);
+ setTimeout(()=>el.remove(),14000);
+}
+// Empieza la lluvia de pétalos desde el inicio y continúa suavemente.
+for(let i=0;i<18;i++) setTimeout(makePetal,i*180);
+setInterval(makePetal,260);
+animate();
+</script></body></html>
